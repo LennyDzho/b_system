@@ -1,3 +1,7 @@
+"""
+Application configuration settings.
+"""
+
 from pathlib import Path
 from typing import Optional
 
@@ -8,11 +12,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 class AppConfig(BaseModel):
+    """
+    Application settings.
+    """
     debug: bool
     api_key: str
 
 
 class DatabaseConfig(BaseModel):
+    """
+    Database connection settings.
+    """
     database: str
     user: str
     password: str
@@ -20,6 +30,9 @@ class DatabaseConfig(BaseModel):
     port: int
 
     def dsn(self) -> str:
+        """
+        Constructs the PostgreSQL DSN for asyncpg.
+        """
 
         return str(
             PostgresDsn.build(
@@ -34,6 +47,9 @@ class DatabaseConfig(BaseModel):
 
 
 class RedisConfig(BaseModel):
+    """
+    Redis connection settings.
+    """
     host: Optional[str]
     port: Optional[int]
     password: Optional[str]
@@ -41,6 +57,9 @@ class RedisConfig(BaseModel):
 
 
 class RabbitMQConfig(BaseModel):
+    """
+    RabbitMQ connection settings.
+    """
     user: str
     password: str
     host: str
@@ -48,6 +67,9 @@ class RabbitMQConfig(BaseModel):
     vhost: str
 
     def dsn(self, vhost: str | None = None) -> str:
+        """
+        Constructs the AMQP DSN for RabbitMQ.
+        """
         vhost = vhost or self.vhost
         return str(
             AmqpDsn.build(
@@ -62,6 +84,9 @@ class RabbitMQConfig(BaseModel):
 
 
 class Settings(BaseModel):
+    """
+    Application settings container.
+    """
     app: AppConfig
     db: DatabaseConfig
     redis: RedisConfig
@@ -69,6 +94,9 @@ class Settings(BaseModel):
 
 
 def load_settings() -> Settings:
+    """
+    Load settings from the .env file.
+    """
     env_path = BASE_DIR / ".env"
     env = Env()
 
@@ -101,5 +129,5 @@ def load_settings() -> Settings:
         ),
     )
 
-
+"""Global settings instance."""
 settings: Settings = load_settings()

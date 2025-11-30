@@ -1,7 +1,14 @@
+"""
+Logging setup for the application.
+"""
+
 import logging
 
 
 def setup_logging(debug: bool = False):
+    """
+    Sets up logging configuration.
+    """
     log_level = logging.DEBUG if debug else logging.INFO
 
     logging.basicConfig(
