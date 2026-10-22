@@ -1,0 +1,38 @@
+CREATE TABLE IF NOT EXISTS canonical_records
+(
+    run_id UUID,
+    source LowCardinality(String),
+    business_key String,
+    property_id Nullable(String),
+    source_rows Array(UInt32),
+    payload_hash String,
+    payload String,
+    type_status LowCardinality(String),
+    reference_status LowCardinality(String),
+    property_name Nullable(String),
+    cluster Nullable(String),
+    owner_id Nullable(String),
+    base_currency Nullable(String),
+    reservation_id Nullable(String),
+    currency Nullable(String),
+    status Nullable(String),
+    payment_status Nullable(String),
+    category Nullable(String),
+    channel Nullable(String),
+    fee_basis Nullable(String),
+    note Nullable(String),
+    check_in Nullable(Date32),
+    check_out Nullable(Date32),
+    expense_date Nullable(Date32),
+    payment_date Nullable(Date32),
+    effective_from Nullable(Date32),
+    effective_to Nullable(Date32),
+    updated_at Nullable(DateTime64(6, 'UTC')),
+    gross_booking_value Nullable(Decimal(20, 2)),
+    ota_fee Nullable(Decimal(20, 2)),
+    refund_amount Nullable(Decimal(20, 2)),
+    amount Nullable(Decimal(20, 2)),
+    management_fee_rate Nullable(Decimal(18, 8))
+)
+ENGINE = MergeTree
+ORDER BY (run_id, source, business_key)
