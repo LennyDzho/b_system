@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Вход — Портфель вилл</title><link rel="stylesheet" href="/static/auth.css">
+<script src="/static/auth.js" defer></script></head>
+<body><main><p class="eyebrow">Портфель вилл</p><h1>Вход</h1>
+<p>Войдите с локальной учётной записью, созданной администратором.</p>
+<form id="login-form" method="post" action="/api/v1/auth/login">
+<label>Логин<input name="username" autocomplete="username" required maxlength="64"></label>
+<label>Пароль<input name="password" type="password" autocomplete="current-password" required maxlength="1024"></label>
+<button type="submit">Войти</button></form><p id="status" role="alert" aria-live="polite"></p>
+<noscript>Для входа включите JavaScript в браузере.</noscript></main></body></html>

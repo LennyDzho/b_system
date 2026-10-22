@@ -1,0 +1,19 @@
+<section class="panel" id="import-upload">
+  <h2>Импорт CSV</h2>
+  <p>Выберите полный набор из пяти файлов с исходными именами. Он будет проверен,
+     рассчитан и опубликован как единый снимок. Повтор того же набора не удваивает суммы.</p>
+  <ul class="import-required">{% for name in import_files %}<li><code>{{ name }}</code></li>{% endfor %}</ul>
+  <form id="import-upload-form" action="/api/v1/imports" method="post" enctype="multipart/form-data">
+    <label for="import-files">CSV-файлы полного набора</label>
+    <input id="import-files" name="files" type="file" accept=".csv,text/csv" multiple required aria-describedby="import-help import-selection">
+    <p id="import-help">UTF-8, разделитель — запятая; до 5 МиБ на файл. Загрузка сохраняет исходные байты. Файлы в data/ не заменяются.</p>
+    <ul id="import-selection" class="import-selection" aria-live="polite"></ul>
+    <button type="submit" id="import-submit">Импортировать набор</button>
+  </form>
+  <div id="import-result" class="import-result" role="status" aria-live="polite" hidden></div>
+  <p class="import-caution">При обрыве связи результат может уже быть опубликован.
+    <a href="/imports">Проверьте историю</a> перед повторной загрузкой. Повтор старого набора не откатывает более новый активный снимок.</p>
+  <noscript><p class="notice">Для отображения результата загрузки включите JavaScript. Импорт через CLI также доступен.</p></noscript>
+</section>
+<script id="import-expected-files" type="application/json">{{ import_files|tojson }}</script>
+<script defer src="/static/imports.js"></script>

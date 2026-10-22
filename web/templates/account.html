@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Учётная запись — Портфель вилл</title><link rel="stylesheet" href="/static/auth.css">
+<script src="/static/auth.js" defer></script></head>
+<body><main><p class="eyebrow">Портфель вилл</p><h1>Учётная запись</h1>
+<dl><dt>Логин</dt><dd>{{ user.username }}</dd><dt>Роль</dt><dd>{{ user.role }}</dd></dl>
+<p><a href="/dashboard">Открыть финансовый dashboard</a></p>
+<h2>Доступ к объектам</h2>
+{% if user.role == 'admin' %}<p>Все объекты портфеля.</p>
+{% elif user.property_ids %}<ul>{% for property_id in user.property_ids|sort %}<li>{{ property_id }}</li>{% endfor %}</ul>
+{% else %}<p>Объекты пока не назначены. Доступ к объектам отсутствует.</p>{% endif %}
+<form id="logout-form" method="post" action="/api/v1/auth/logout"><button type="submit">Выйти</button></form>
+<p id="status" role="alert" aria-live="polite"></p></main></body></html>
