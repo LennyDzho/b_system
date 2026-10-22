@@ -1,0 +1,1 @@
+{% extends "finance_base.html" %}{% block content %}<section class="empty"><h1>{{ title or 'Финансовые данные недоступны' }}</h1><p role="alert">{{ message }}</p><p>Сбой сервиса не означает нулевой результат портфеля или отсутствие проблем.</p><a href="{{ request.url.path }}">Повторить загрузку</a></section>{% endblock %}

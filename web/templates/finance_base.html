@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{% block title %}Финансы портфеля{% endblock %} · Villa Finance</title><link rel="stylesheet" href="/static/finance.css"><script defer src="/static/auth.js"></script><script defer src="/static/finance.js"></script></head>
+<body><header class="topbar"><a class="brand" href="/dashboard"><span class="brand-mark">V</span> Villa Finance <small>Портфель вилл</small></a><nav><a href="/dashboard">Финансы</a><a href="/quality">Качество данных</a>{% if user and user.role == 'admin' %}<a href="/imports#import-upload">Импорт CSV</a><a href="/imports">История импортов</a>{% endif %}<a href="/account">Учётная запись</a>{% if user %}<span>{{ user.username }}</span><form id="logout-form" action="/api/v1/auth/logout"><button type="submit" class="quiet">Выйти</button></form>{% endif %}</nav></header>
+<main>{% block content %}{% endblock %}<p id="status" role="alert"></p></main><footer>Прототип · IDR · Начисления и денежные поступления учитываются раздельно.</footer></body></html>
