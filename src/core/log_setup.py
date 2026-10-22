@@ -5,7 +5,7 @@ Logging setup for the application.
 import logging
 
 
-def setup_logging(debug: bool = False):
+def setup_logging(debug: bool = False) -> None:
     """
     Sets up logging configuration.
     """

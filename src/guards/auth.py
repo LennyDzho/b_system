@@ -1,13 +1,12 @@
 """
 Authentication guard for API key validation.
 """
+
 from fastapi import Security
+from fastapi.security.api_key import APIKeyHeader
 
-from fastapi.security.api_key import APIKey, APIKeyHeader
-
-from src.core.infra.exceptions import NotApiKey, InvalidApiKey
-from core.settings import settings
-
+from src.core.infra.exceptions import InvalidApiKey, NotApiKey
+from src.core.settings import settings
 
 api_key_header = APIKeyHeader(
     name="x-api-key",
@@ -17,7 +16,7 @@ api_key_header = APIKeyHeader(
 )
 
 
-async def auth_guard(api_key: APIKey = Security(api_key_header)) -> APIKey:
+async def auth_guard(api_key: str | None = Security(api_key_header)) -> str:
     """
     Authentication guard that validates the API key from the request header.
     """

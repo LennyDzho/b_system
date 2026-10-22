@@ -1,6 +1,7 @@
 """
 Base repository providing common database operations.
 """
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models import Base
@@ -10,6 +11,7 @@ class BaseRepo:
     """
     Base repository providing common database operations.
     """
+
     def __init__(self, session: AsyncSession) -> None:
         """
         Initializes the BaseRepo with a database session.

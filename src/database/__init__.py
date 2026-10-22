@@ -1,19 +1,5 @@
-"""
-Database helper initialization.
-This module imports and exposes the main database helper instance.
-"""
+"""Expose PostgreSQL helpers without opening a process-global engine."""
 
-from .helper import DatabaseHelper
-from core import settings
+from src.database.helper import DatabaseHelper
 
-
-"""Initialize the DatabaseHelper with settings from the core configuration."""
-db_helper: DatabaseHelper = DatabaseHelper(
-    settings.db.dsn(),
-    echo=False,
-    echo_pool=False,
-    pool_size=10,
-    max_overflow=50,
-)
-
-__all__ = ["db_helper"]
+__all__ = ["DatabaseHelper"]
