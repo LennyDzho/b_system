@@ -182,5 +182,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-.docs/
-.data/
+docs/
+data/
+AGENTS.md
+EPIC_FINANCE_DASHBOARD.md
