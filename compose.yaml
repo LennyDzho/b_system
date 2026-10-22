@@ -1,0 +1,76 @@
+name: b-system
+
+services:
+  postgres:
+    image: postgres:16.15-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+    environment:
+      POSTGRES_DB: ${DB_NAME:-finance}
+      POSTGRES_USER: ${DB_USER:-finance}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me-local-postgres}
+    ports:
+      - "127.0.0.1:${DB_PORT:-55432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.8.20.9-alpine@sha256:1e67397fa4828e8dbb95b3bcc37a8822749ca5e46bd208b3ef336f365c522688
+    environment:
+      CLICKHOUSE_DB: ${CH_DATABASE:-finance}
+      CLICKHOUSE_USER: ${CH_USER:-finance}
+      CLICKHOUSE_PASSWORD: ${CH_PASSWORD:-change-me-local-clickhouse}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "127.0.0.1:${CH_PORT:-58123}:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --output-document=- http://127.0.0.1:8123/ping | grep -q Ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    environment:
+      APP_DEBUG: ${APP_DEBUG:-False}
+      AUTH_ORIGIN: ${AUTH_ORIGIN:-http://localhost:8000}
+      SESSION_SECONDS: ${SESSION_SECONDS:-28800}
+      DATA_DIR: /app/data
+      BROKER_ENABLED: "False"
+      DB_NAME: ${DB_NAME:-finance}
+      DB_USER: ${DB_USER:-finance}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me-local-postgres}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      CH_DATABASE: ${CH_DATABASE:-finance}
+      CH_USER: ${CH_USER:-finance}
+      CH_PASSWORD: ${CH_PASSWORD:-change-me-local-clickhouse}
+      CH_HOST: clickhouse
+      CH_PORT: "8123"
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready', timeout=10)"]
+      interval: 10s
+      timeout: 12s
+      retries: 5
+
+volumes:
+  postgres_data:
+  clickhouse_data:
