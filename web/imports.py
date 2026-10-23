@@ -3,7 +3,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from dishka.integrations.fastapi import DishkaRoute, FromDishka
+from dishka.integrations.fastapi import FromDishka
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 
@@ -11,9 +11,10 @@ from src.api.v1.auth.schemas import Identity
 from src.api.v1.imports.service import ImportHistoryService
 from src.guards.session import current_user
 from src.services.imports.records import SCHEMAS
+from web.routing import HtmlRoute
 from web.templating import templates
 
-router = APIRouter(include_in_schema=False, route_class=DishkaRoute)
+router = APIRouter(include_in_schema=False, route_class=HtmlRoute)
 
 
 @router.get("/imports")

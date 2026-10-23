@@ -2,7 +2,7 @@
 
 (() => {
   document.addEventListener("submit", event => {
-    if (event.target.id !== "finance-filter") return;
+    if (!event.target.matches(".filters")) return;
     for (const field of event.target.elements) {
       if (field.name && !field.value) field.disabled = true;
     }

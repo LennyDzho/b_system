@@ -4,7 +4,7 @@ from dataclasses import replace
 from typing import Annotated
 from uuid import UUID
 
-from dishka.integrations.fastapi import DishkaRoute, FromDishka
+from dishka.integrations.fastapi import FromDishka
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
@@ -16,9 +16,10 @@ from src.api.v1.finance.service import DashboardService
 from src.core.infra.exceptions import AuthError
 from src.core.settings import AuthConfig
 from src.guards.session import access_scope, current_user
+from web.routing import HtmlRoute
 from web.templating import templates
 
-router = APIRouter(include_in_schema=False, route_class=DishkaRoute)
+router = APIRouter(include_in_schema=False, route_class=HtmlRoute)
 
 
 @router.get("/login", response_model=None)

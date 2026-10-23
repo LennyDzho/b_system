@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from dishka.integrations.fastapi import DishkaRoute, FromDishka
+from dishka.integrations.fastapi import FromDishka
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 
@@ -12,9 +12,10 @@ from src.api.v1.quality.dependencies import quality_data
 from src.api.v1.quality.schemas import QualityResponse
 from src.api.v1.quality.service import QualityService
 from src.guards.session import current_user
+from web.routing import HtmlRoute
 from web.templating import templates
 
-router = APIRouter(include_in_schema=False, route_class=DishkaRoute)
+router = APIRouter(include_in_schema=False, route_class=HtmlRoute)
 
 
 @router.get("/quality")
