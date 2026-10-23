@@ -16,9 +16,9 @@
 {% endmacro %}
 
 {% if data.charts %}
+{% if view == 'overview' %}
 <section class="panel chart-panel" id="trend-panel">
   <h2>Динамика основных показателей</h2>
-  <p>Значения за каждый интервал, без накопления. Нажмите на показатель в легенде, чтобы убрать или вернуть его линию. Неизвестная комиссия оставляет разрыв, а не нулевую точку.</p>
   <div class="chart-toolbar">
     <span class="chart-step" data-chart-step="trend"></span>
     <div class="chart-period-control"><label for="trend-period">Период на графике</label><select id="trend-period" aria-controls="trend-readout"></select></div>
@@ -27,14 +27,14 @@
   <div id="trend-legend" class="chart-legend" aria-label="Показатели динамики"></div>
   <div id="trend-chart" class="chart-plot"></div>
   <div id="trend-readout" class="chart-readout" aria-live="polite"></div>
-  <p class="chart-note">Оценочный результат показан до неизвестных комиссий. Пунктир обозначает оценку или неполные данные. Точные суммы доступны ниже; шкала графика — в миллионах IDR.</p>
+  <p class="chart-note">Без накопления · млн IDR. Пунктир — оценка или неполные данные; разрыв — неизвестная сумма. Нажмите на показатель в легенде, чтобы убрать или вернуть линию.</p>
   <p class="chart-scroll-hint">На узком экране график можно прокрутить по горизонтали.</p>
   {% if data.charts.trend.undated_count %}<p class="chart-warning">Без достоверной даты: {{ data.charts.trend.undated_count }} записей. Они не распределены по интервалам; ограничения указаны в покрытии.</p>{% endif %}
   {{ period_table(data.charts.trend, ['gross','refund','net','ota','management','expenses','owner_estimate','cash']) }}
 </section>
 
 <div class="chart-grid">
-  <section class="panel chart-panel" id="cash-chart-panel">
+  <section class="panel chart-panel" id="cash-chart-panel" data-default-collapsed="true">
     <h2>Начисления и поступления в периоде</h2>
     <p>Начисления после OTA — по выезду, поступления — по дате платежа. Это разные потоки; разница не равна точной дебиторской задолженности.</p>
     <div class="chart-toolbar"><span class="chart-step" data-chart-step="cash_accrual"></span><button type="button" class="quiet legend-toggle" aria-controls="cash-legend" aria-expanded="true">Скрыть легенду</button></div>
@@ -42,21 +42,22 @@
     <div id="cash-chart" class="chart-plot"></div>
     {{ period_table(data.charts.cash_accrual, ['after_ota','cash']) }}
   </section>
-  <section class="panel chart-panel" id="deductions-chart-panel">
+  <section class="panel chart-panel" id="deductions-chart-panel" data-default-collapsed="true">
     <h2>Возвраты, комиссии и расходы</h2>
     <p>За выбранный период. Комиссия управления показана только в известной части. Возвраты здесь — корректировки начислений, а не подтверждённые денежные выплаты.</p>
     <div id="deductions-chart" class="chart-plot"></div>
     {% if data.unknown_fees %}<p class="chart-warning">Не определена комиссия по {{ data.unknown_fees }} броням. Известная часть не является полной суммой комиссии.</p>{% endif %}
   </section>
 </div>
-
+{% elif view == 'properties' %}
 <section class="panel chart-panel" id="properties-chart-panel">
   <h2>Результат и поступления по объектам</h2>
   <p>Оценочный результат до неизвестных комиссий и независимые денежные поступления. Отрицательное значение показано слева от нуля. Звёздочка (*) — неполные данные. Только доступные объекты и выбранный период.</p>
-  <div class="chart-toolbar"><button type="button" class="quiet legend-toggle" aria-controls="properties-legend" aria-expanded="true">Скрыть легенду</button></div>
+  <div class="chart-toolbar"><label>Показать объектов<select id="property-chart-count"><option value="8">Первые 8</option><option value="all">Все доступные</option></select></label><button type="button" class="quiet legend-toggle" aria-controls="properties-legend" aria-expanded="true">Скрыть легенду</button></div>
   <div id="properties-legend" class="chart-legend" aria-label="Показатели объектов"></div>
   <div id="properties-chart" class="chart-plot"></div>
 </section>
+{% endif %}
 <script id="dashboard-chart-data" type="application/json">{{ chart_payload|tojson }}</script>
 <noscript><p class="notice">Для интерактивных графиков включите JavaScript. Серверные суммы и таблицы по периодам доступны без него.</p></noscript>
 {% else %}

@@ -1,0 +1,21 @@
+{% macro metric_card(key, secondary=false) %}
+{% set metric = data.metrics[key] %}
+<a class="card {% if key == 'owner_estimate' %}featured{% endif %}" href="{{ dashboard_url(view='operations',metric=key,page=none,source=none,status=none,record_query=none) }}" data-metric="{{ key }}">
+<span>{{ labels[key] }}{% if key == 'owner_estimate' %} · оценка{% endif %}</span>
+<strong>{{ (metric.known_subtotal if metric.is_estimate else metric.value)|money }}</strong>
+<div><small>IDR{% if metric.is_estimate %} · до неизвестных комиссий{% endif %}</small>
+{% if metric.unknown_count %}<small class="metric-status">Не определено: {{ metric.unknown_count }} комиссий</small>{% if metric.value is none %}<small>Известная часть: {{ metric.known_subtotal|money }}</small>{% endif %}
+{% elif not metric.is_complete %}<small class="metric-status">Есть исключённые записи</small>{% endif %}</div>
+</a>
+{% endmacro %}
+{% macro operations_table(rows, unallocated=false) %}
+<div class="table-scroll"><table aria-label="{{ 'Нераспределённые записи' if unallocated else 'Финансовые операции' }}">
+<thead><tr><th>Операция</th><th>Объект</th><th>Дата</th><th class="number">Сумма{% if unallocated %} / Gross{% endif %}</th><th>Решение</th><th>Причина{% if unallocated %} / исходные строки{% endif %}</th></tr></thead>
+<tbody>{% for row in rows %}<tr data-source="{{ row.source }}" data-key="{{ row.business_key }}">
+<td><a href="{{ record_url(row.source,row.business_key) }}">{{ row.business_key }}</a><small>{{ source_labels[row.source] }}</small></td>
+<td>{{ row.property_id or 'Не распределён' }}</td><td>{{ row.fact_date|human_date }}</td>
+<td class="number">{{ (row.gross if row.source == 'reservations.csv' else row.amount)|money }}<small>{{ row.currency }}{% if row.source == 'reservations.csv' %} · стоимость брони{% endif %}</small></td>
+<td><span class="badge {{ 'included' if row.included else 'excluded' }}">{{ 'Включено' if row.included else 'Исключено' }}</span></td>
+<td>{% for code in row.reasons %}<small>{{ reason_labels.get(code,code) }}</small>{% else %}<span class="muted">—</span>{% endfor %}{% if unallocated %}{% for number in row.source_rows %}<small><a href="/quality/raw/{{ row.source }}/{{ number }}?run_id={{ data.run_id }}">Строка {{ number }} CSV</a></small>{% endfor %}{% endif %}</td>
+</tr>{% endfor %}</tbody></table></div>
+{% endmacro %}

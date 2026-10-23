@@ -56,8 +56,8 @@ def main() -> None:
                 page.get_by_role("button", name="Войти").click()
                 page.wait_for_url("**/dashboard")
                 assert page.get_by_role("heading", name="Финансы портфеля", exact=True).is_visible()
-                page.locator("#properties-chart svg").wait_for()
-                assert page.locator(".chart-plot svg").count() == 4
+                page.locator("#trend-chart svg").wait_for()
+                assert page.locator(".chart-plot svg").count() == 3
                 scope_data = page.request.get(settings.auth.origin + "/api/v1/dashboard").json()
                 assert scope_data["scope"] == ["V019"]
                 assert (
@@ -65,11 +65,12 @@ def main() -> None:
                     == scope_data["date_from"]
                 )
                 assert (
-                    "Оценочный результат собственника"
+                    "Результат собственника"
                     in page.locator("[data-metric=owner_estimate]").inner_text()
                 )
                 for warning in scope_data["warnings"]:
                     assert warning not in page.locator("main").inner_text()
+                page.locator("#portfolio-filters > summary").click()
                 page.get_by_label("С даты включительно").fill("2026-09-01")
                 page.get_by_label("По дату включительно").fill("2026-09-30")
                 page.get_by_role("button", name="Применить").click()
@@ -85,18 +86,23 @@ def main() -> None:
                     page.request.get(settings.auth.origin + "/api/v1/reservations/R0001").status
                     == 404
                 )
+                page.locator("#portfolio-filters > summary").click()
                 page.get_by_role("link", name="Сбросить").click()
                 page.wait_for_url("**/dashboard?run_id=*")
                 output = BASE_DIR / ".cache" / "e04-dashboard.png"
                 output.parent.mkdir(exist_ok=True)
                 page.screenshot(path=str(output))
+                page.locator(".tabs a").filter(has_text="Операции").click()
+                page.get_by_label("Поиск по ID или объекту").fill("R0002")
+                page.get_by_role("button", name="Найти", exact=True).click()
                 page.get_by_role("link", name="R0002", exact=True).click()
                 page.wait_for_url("**/detail/reservations/R0002?**")
                 assert page.get_by_role("heading", name="R0002", exact=True).is_visible()
                 assert "2 002 396" in page.locator(".values").inner_text()
-                assert page.get_by_role(
-                    "heading", name="Исходные строки · reservations.csv"
+                assert page.get_by_text(
+                    "Исходные строки · reservations.csv", exact=True
                 ).is_visible()
+                page.get_by_text("Правила и формулы", exact=True).click()
                 assert "ROUND_HALF_UP" in page.locator("main").inner_text()
                 page.get_by_role("link", name="P0001", exact=True).click()
                 assert page.get_by_role("heading", name="P0001", exact=True).is_visible()
@@ -105,7 +111,8 @@ def main() -> None:
                     settings.auth.origin + "/dashboard?date_from=2027-01-01&date_to=2027-01-31"
                 )
                 assert page.get_by_role("heading", name="В этой выборке нет записей").is_visible()
-                assert page.locator("[data-metric=gross] strong").inner_text() == "0"
+                assert page.locator("[data-metric=cash] strong").inner_text() == "0"
+                page.locator(".user-menu > summary").click()
                 page.get_by_role("button", name="Выйти").click()
                 page.wait_for_url("**/login")
                 assert page.request.get(settings.auth.origin + "/api/v1/dashboard").status == 401

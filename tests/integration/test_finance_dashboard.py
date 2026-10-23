@@ -152,7 +152,7 @@ async def test_real_financial_publication_controls_and_http_scope(
                 and "ROUND_HALF_UP" in html.text
                 and "Исходные строки" in html.text
             )
-            dashboard_html = await client.get("/dashboard")
+            dashboard_html = await client.get("/dashboard?view=operations")
             assert dashboard_html.status_code == 200
             unallocated_html = dashboard_html.text.split('id="unallocated"', 1)[1].split(
                 "</section>", 1

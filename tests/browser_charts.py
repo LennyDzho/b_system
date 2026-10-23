@@ -37,8 +37,8 @@ async def main() -> None:
                         await page.get_by_label("Пароль", exact=True).fill(password)
                         await page.get_by_role("button", name="Войти", exact=True).click()
                         await page.wait_for_url("**/dashboard")
-                        await page.locator("#properties-chart svg").wait_for()
-                        assert await page.locator(".chart-plot svg").count() == 4
+                        await page.locator("#trend-chart svg").wait_for()
+                        assert await page.locator(".chart-plot svg").count() == 3
                         payload = json.loads(
                             await page.locator("#dashboard-chart-data").text_content()
                         )
@@ -94,12 +94,12 @@ async def main() -> None:
                         assert await page.locator("#trend-panel .chart-table table").is_visible()
                         await page.locator("#trend-panel .chart-table summary").click()
 
-                        await page.get_by_role(
-                            "button", name="Свернуть: Финансовая детализация", exact=True
-                        ).click()
-                        assert not await page.locator("#records table").is_visible()
+                        await page.locator("#metrics-panel .panel-toggle").click()
                         await page.locator('[data-metric="gross"]').click()
                         assert await page.locator("#records table").is_visible()
+                        await page.goto(origin + "/dashboard?view=properties")
+                        assert await page.locator("#properties-chart svg").is_visible()
+                        await page.goto(origin + "/dashboard")
                         await page.get_by_role(
                             "button", name="Свернуть все блоки", exact=True
                         ).click()

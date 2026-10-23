@@ -47,7 +47,8 @@
       button.setAttribute("aria-label", `${button.textContent}: ${heading.textContent}`);
       if (remember) preference(key, String(collapsed));
     };
-    collapse(preference(key) === "true", false);
+    const remembered = preference(key);
+    collapse(remembered === null ? panel.dataset.defaultCollapsed === "true" : remembered === "true", false);
     button.addEventListener("click", () => collapse(!content.hidden));
     panels.push({panel, collapse});
   });
@@ -147,6 +148,7 @@
   };
   const legend = (id, keys, selected, draw) => {
     const host = document.getElementById(id);
+    if (!host) return;
     keys.forEach(key => {
       const button = node("button");
       button.type = "button";
@@ -166,9 +168,10 @@
   };
   const noSeries = box => box.svg.append(svgNode("text", {x: box.width / 2, y: box.height / 2, "text-anchor": "middle", class: "chart-axis"}, "Выберите показатели в легенде"));
 
+  if (document.getElementById("trend-chart")) {
   const points = data.charts.trend.points;
   const trendKeys = ["gross", "refund", "net", "ota", "management", "expenses", "owner_estimate", "cash"];
-  const trendVisible = new Set(["gross", "expenses", "owner_estimate", "cash"]);
+  const trendVisible = new Set(["gross", "owner_estimate", "cash"]);
   const picker = document.getElementById("trend-period");
   points.forEach((point, index) => {
     const option = node("option", periodLabel(point));
@@ -189,7 +192,7 @@
   };
   picker.addEventListener("change", () => readout(Number(picker.value)));
   const drawTrend = () => {
-    const box = frame("trend-chart");
+    const box = frame("trend-chart", 310, Math.max(520, document.getElementById("trend-chart").clientWidth));
     const keys = trendKeys.filter(key => trendVisible.has(key));
     readout(Number(picker.value));
     if (!keys.length) { noSeries(box); return; }
@@ -225,6 +228,7 @@
     });
   };
   legend("trend-legend", trendKeys, trendVisible, drawTrend);
+  }
 
   const comparisonKeys = ["after_ota", "cash"];
   const comparisonVisible = new Set(comparisonKeys);
@@ -253,7 +257,7 @@
   legend("cash-legend", comparisonKeys, comparisonVisible, drawComparison);
 
   const horizontal = (rows, keys) => {
-    const box = frame("properties-chart", Math.max(280, rows.length * 62 + 65), 1000, 280, 165);
+    const box = frame("properties-chart", Math.max(240, rows.length * 54 + 65), Math.max(700, document.getElementById("properties-chart").clientWidth), 160, 150);
     if (!keys.length) { noSeries(box); return; }
     const values = rows.flatMap(row => keys.map(key => row.metrics[key].value)).filter(value => value !== null).map(Number);
     const bounds = scale(values);
@@ -266,7 +270,7 @@
     box.svg.append(svgNode("text", {x: box.left, y: 13, class: "chart-axis"}, "млн IDR"));
     box.svg.append(svgNode("line", {x1: x(0), x2: x(0), y1: 20, y2: box.height - 40, class: "chart-zero"}));
     rows.forEach((row, index) => {
-      const top = 30 + index * 62;
+      const top = 30 + index * 54;
       const label = svgNode("text", {x: box.left - 16, y: top + 18, "text-anchor": "end", class: "chart-axis"}, row.label.length > 35 ? `${row.label.slice(0, 33)}…` : row.label);
       label.append(svgNode("title", {}, row.label));
       box.svg.append(label);
@@ -280,7 +284,8 @@
       });
     });
   };
-  const deductions = frame("deductions-chart", 315, Math.max(600, document.getElementById("deductions-chart").clientWidth), 24, 24);
+  if (document.getElementById("deductions-chart")) {
+  const deductions = frame("deductions-chart", 315, 600, 24, 24);
   const deductionValueX = deductions.width - 190;
   const deductionKeys = ["refund", "ota", "management", "expenses"];
   const deductionMax = Math.max(1, ...deductionKeys.map(key => Number(data.metrics[key].known_subtotal)));
@@ -291,8 +296,12 @@
     bar.append(svgNode("title", {}, `${labels[key]}: ${metricText(metric)}`));
     deductions.svg.append(bar, svgNode("text", {x: deductionValueX, y: y + 27, class: "chart-axis"}, `${money(metric.known_subtotal)} IDR${!metric.is_complete ? " *" : ""}`));
   });
+  }
   const propertyKeys = ["owner_estimate", "cash"];
   const propertyVisible = new Set(propertyKeys);
   const propertyRows = data.properties.map(prop => ({label: `${prop.property_id} · ${prop.property_name}`, metrics: prop.metrics}));
-  legend("properties-legend", propertyKeys, propertyVisible, () => horizontal(propertyRows, propertyKeys.filter(key => propertyVisible.has(key))));
+  const propertyPicker = document.getElementById("property-chart-count");
+  const drawProperties = () => horizontal(propertyPicker.value === "all" ? propertyRows : propertyRows.slice(0, 8), propertyKeys.filter(key => propertyVisible.has(key)));
+  legend("properties-legend", propertyKeys, propertyVisible, drawProperties);
+  if (propertyPicker) propertyPicker.addEventListener("change", drawProperties);
 })();
