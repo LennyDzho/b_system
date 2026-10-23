@@ -5,8 +5,11 @@ from decimal import Decimal
 from fastapi.templating import Jinja2Templates
 
 from src.core.settings import BASE_DIR
+from web.presentation import human_date, label, navigation
 
-templates = Jinja2Templates(directory=BASE_DIR / "web" / "templates")
+templates = Jinja2Templates(
+    directory=BASE_DIR / "web" / "templates", context_processors=[navigation]
+)
 
 
 def money(value: str | None) -> str:
@@ -18,3 +21,5 @@ def money(value: str | None) -> str:
 
 
 templates.env.filters["money"] = money
+templates.env.filters["human_date"] = human_date
+templates.env.filters["label"] = label

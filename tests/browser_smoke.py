@@ -82,6 +82,7 @@ def main() -> None:
                     for cookie in page.context.cookies()
                     if cookie["name"] == "villa_session"
                 )
+                page.locator(".user-menu > summary").click()
                 page.get_by_role("button", name="Выйти").click()
                 page.wait_for_url("**/login")
                 assert page.request.get(settings.auth.origin + "/api/v1/auth/me").status == 401

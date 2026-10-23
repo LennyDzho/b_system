@@ -1,14 +1,5 @@
-<!doctype html>
-<html lang="ru">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Учётная запись — Портфель вилл</title><link rel="stylesheet" href="/static/auth.css">
-<script src="/static/auth.js" defer></script></head>
-<body><main><p class="eyebrow">Портфель вилл</p><h1>Учётная запись</h1>
-<dl><dt>Логин</dt><dd>{{ user.username }}</dd><dt>Роль</dt><dd>{{ user.role }}</dd></dl>
-<p><a href="/dashboard">Открыть финансовый dashboard</a></p>
-<h2>Доступ к объектам</h2>
-{% if user.role == 'admin' %}<p>Все объекты портфеля.</p>
-{% elif user.property_ids %}<ul>{% for property_id in user.property_ids|sort %}<li>{{ property_id }}</li>{% endfor %}</ul>
-{% else %}<p>Объекты пока не назначены. Доступ к объектам отсутствует.</p>{% endif %}
-<form id="logout-form" method="post" action="/api/v1/auth/logout"><button type="submit">Выйти</button></form>
-<p id="status" role="alert" aria-live="polite"></p></main></body></html>
+{% extends "finance_base.html" %}{% block title %}Учётная запись{% endblock %}
+{% block content %}<div class="page-heading"><div><p class="eyebrow">Профиль и доступ</p><h1>Учётная запись</h1></div></div>
+<div class="account-layout"><section class="panel"><h2>{{ user.username }}</h2><dl class="detail-list"><dt>Роль</dt><dd>{{ user.role|label }}</dd><dt>Доступ</dt><dd>{% if user.role == 'admin' %}Все объекты портфеля{% elif user.property_ids %}{{ user.property_ids|length }} объектов{% else %}Объекты пока не назначены{% endif %}</dd></dl></section>
+<section class="panel"><h2>Доступные объекты</h2>{% if user.role == 'admin' %}<p>Финансы всех объектов, диагностика и управление импортами.</p>{% elif user.property_ids %}<div class="import-required">{% for property_id in user.property_ids|sort %}<a class="tag" href="/dashboard?property_id={{ property_id }}">{{ property_id }}</a>{% endfor %}</div>{% else %}<p>Доступ к объектам отсутствует. Обратитесь к администратору для назначения объектов.</p>{% endif %}<a class="button secondary" href="/dashboard">Открыть финансы</a></section></div>
+{% endblock %}

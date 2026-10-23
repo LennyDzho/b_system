@@ -1,9 +1,4 @@
-:root { color-scheme: light; font-family: system-ui, sans-serif; color: #183b45; background: #eef3f1; }
-body { margin: 0; padding: 5vh 1rem; }
-main { max-width: 30rem; margin: auto; padding: 2rem; background: white; border-radius: 1rem; box-shadow: 0 8px 40px #183b4510; }
-h1 { margin-top: .3rem; } h2 { font-size: 1.15rem; } p { line-height: 1.6; }
-.eyebrow { color: #47705c; font-weight: 600; } label { display: block; margin: 1rem 0; }
-input { display: block; box-sizing: border-box; width: 100%; padding: .75rem; margin-top: .4rem; border: 1px solid #a9bbb4; border-radius: .4rem; font: inherit; }
-button { padding: .75rem 1.4rem; border: 0; border-radius: .4rem; background: #235c49; color: white; font: inherit; cursor: pointer; }
-button:disabled { opacity: .6; } dt { font-weight: 600; } dd { margin: .3rem 0 1rem; }
-#status { color: #9b2929; }
+.auth-page{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:32px 16px;background:radial-gradient(ellipse at 15% 15%,#e1ece5,transparent 60%),#f4f6f5}
+.auth-page main{width:100%;max-width:420px;min-height:0;background:white;border:1px solid var(--line);border-radius:16px;padding:32px;box-shadow:0 16px 60px #153d3110}
+.auth-page .brand{margin-bottom:32px}.auth-page h1{font-size:27px}.auth-page form{display:grid;gap:18px;margin:24px 0 16px}.auth-page input{min-height:44px}.auth-page button{min-height:44px}.auth-page #status{font-size:13px}.auth-page footer{padding-bottom:0}.auth-page .help{margin-bottom:0}
+@media(max-width:450px){.auth-page{justify-content:flex-start;padding-top:10vh}.auth-page main{padding:26px 22px}}
