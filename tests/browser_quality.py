@@ -66,13 +66,14 @@ def check_unallocated(page: Page) -> None:
         row.get_by_role("link", name=key, exact=True).click()
         assert page.get_by_role("heading", name=key, exact=True).is_visible()
         assert source in page.locator("main").inner_text()
-        assert "Запись исключена из распределённых сумм" in page.locator("main").inner_text()
+        assert "Исключено из распределённых сумм" in page.locator("main").inner_text()
         page.go_back()
     page.set_viewport_size({"width": 390, "height": 844})
     section.scroll_into_view_if_needed()
     assert section.is_visible()
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     page.set_viewport_size({"width": 1500, "height": 1000})
+    page.locator("#portfolio-filters > summary").click()
     page.get_by_label("С даты включительно").fill("2026-10-20")
     page.get_by_label("По дату включительно").fill("2026-10-21")
     page.get_by_role("button", name="Применить", exact=True).click()
@@ -81,6 +82,7 @@ def check_unallocated(page: Page) -> None:
     assert section.get_by_role("link", name="R0034", exact=True).count() == 0
     assert section.get_by_role("link", name="P0017", exact=True).is_visible()
     assert section.get_by_role("link", name="E0017", exact=True).is_visible()
+    page.locator("#portfolio-filters > summary").click()
     page.locator("#finance-filter select[name=property_id]").select_option("V019")
     page.get_by_role("button", name="Применить", exact=True).click()
     page.wait_for_url("**/dashboard?**property_id=V019*")
@@ -116,11 +118,16 @@ def main() -> None:
                             == 404
                         )
                     else:
+                        page.locator(".tabs a").filter(has_text="Операции").click()
                         check_unallocated(page)
+                        page.locator("#portfolio-filters > summary").click()
+                        page.get_by_role("link", name="Сбросить", exact=True).click()
                     page.get_by_role("link", name="Качество данных", exact=True).click()
                     assert page.get_by_role(
                         "heading", name="Качество данных", exact=True
                     ).is_visible()
+                    page.locator("#quality-filters > summary").click()
+                    page.get_by_text("Дополнительные фильтры", exact=True).click()
                     if index == 0:
                         assert (
                             page.request.get(settings.auth.origin + "/api/v1/imports").status == 403
@@ -139,9 +146,9 @@ def main() -> None:
                             != "87"
                         )
                         pair = page.get_by_role("row").filter(has_text="R0033 и R0056")
-                        pair.get_by_role("link", name="OCCUPANCY_OVERLAP", exact=True).click()
+                        pair.get_by_role("link", name="Пересечение проживаний", exact=True).click()
                         assert page.get_by_role(
-                            "heading", name="OCCUPANCY_OVERLAP", exact=True
+                            "heading", name="Пересечение проживаний", exact=True
                         ).is_visible()
                         assert "R0056" in page.locator("main").inner_text()
                         page.get_by_role("link", name=re.compile("^Исходная строка ")).first.click()
@@ -152,18 +159,18 @@ def main() -> None:
                         page.get_by_label("Бизнес-ID", exact=True).fill("P0051")
                         page.get_by_role("button", name="Применить", exact=True).click()
                         page.wait_for_url("**/quality?**business_key=P0051*")
-                        page.get_by_role("link", name="UNRECONCILED_PAYMENT", exact=True).click()
+                        page.get_by_role("link", name="Поступление не сверено", exact=True).click()
                         assert page.get_by_role(
-                            "heading", name="UNRECONCILED_PAYMENT", exact=True
+                            "heading", name="Поступление не сверено", exact=True
                         ).is_visible()
                         effects = (
-                            page.get_by_role("heading", name="Влияние на финансовые показатели")
+                            page.get_by_role("heading", name="Решения по финансовым фактам")
                             .locator("xpath=ancestor::section[1]")
                             .inner_text()
                         )
                         assert "Включено" in effects and "Исключено" in effects
                         assert "R0102" in effects and "P0051" in effects
-                        page.get_by_role("link", name="История импортов", exact=True).click()
+                        page.get_by_role("link", name="Импорты", exact=True).click()
                         assert page.get_by_role(
                             "heading", name="История импортов", exact=True
                         ).is_visible()
@@ -177,17 +184,20 @@ def main() -> None:
                             ),
                             current,
                         )
-                        page.get_by_role("link", name=current, exact=True).click()
+                        page.get_by_role("link", name=current[:8], exact=True).click()
                         assert page.get_by_role(
                             "heading", name="Сравнение наборов", exact=True
                         ).is_visible()
+                        page.get_by_text("Изменить базовый снимок", exact=True).click()
                         page.get_by_label("Базовый опубликованный run_id", exact=True).fill(
                             baseline
                         )
                         page.get_by_role("button", name="Сравнить", exact=True).click()
                         page.wait_for_url("**/imports/**?base_run_id=*")
                         assert "не доказывает удаление" in page.locator("main").inner_text()
-                        page.get_by_role("link", name="Качество снимка", exact=True).click()
+                        page.get_by_role("link", name="Качество снимка →", exact=True).click()
+                        page.locator("#quality-filters > summary").click()
+                        page.get_by_text("Дополнительные фильтры", exact=True).click()
                         page.get_by_label("Код проблемы", exact=True).select_option(
                             "DIRECT_WITH_OTA"
                         )
@@ -197,6 +207,7 @@ def main() -> None:
                         output = BASE_DIR / ".cache" / "e05-quality.png"
                         output.parent.mkdir(exist_ok=True)
                         page.screenshot(path=str(output))
+                    page.locator(".user-menu > summary").click()
                     page.get_by_role("button", name="Выйти", exact=True).click()
                     page.wait_for_url("**/login")
                 assert (

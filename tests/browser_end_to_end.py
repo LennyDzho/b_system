@@ -134,11 +134,11 @@ async def assert_ui_api(page: Page, origin: str, expected: list[int] | None = No
     response = await page.request.get(origin + "/api/v1/dashboard?" + query)
     assert response.status == 200
     data = await response.json()
-    assert data["run_id"] in await page.locator(".metadata").inner_text()
+    assert data["run_id"] in await page.locator(".metadata-details").text_content()
     for index, key in enumerate(METRICS):
         metric = data["metrics"][key]
         value = metric["known_subtotal"] if key == "owner_estimate" else metric["value"]
-        assert await page.locator(f"[data-metric={key}] strong").inner_text() == money(value)
+        assert await page.locator(f"[data-metric={key}] strong").text_content() == money(value)
         if expected is not None:
             assert Decimal(metric["known_subtotal"]) == Decimal(expected[index])
     return data
@@ -183,6 +183,7 @@ async def exercise(config: Settings, password: str, viewer_password: str) -> Non
             await page.reload()
             for start, end, expected, _admitted, _unknown in EXPECTED:
                 if start:
+                    await page.locator("#portfolio-filters > summary").click()
                     await page.get_by_label("С даты включительно").fill(start.isoformat())
                     await page.get_by_label("По дату включительно").fill(end.isoformat())
                     await page.get_by_role("button", name="Применить", exact=True).click()
@@ -201,6 +202,7 @@ async def exercise(config: Settings, password: str, viewer_password: str) -> Non
                 second = await import_cli(config, Path(temporary))
             assert second["run_id"] != first["run_id"]
             # These controls were rendered before publication. Their destination must stay pinned.
+            await page.locator("#portfolio-filters > summary").click()
             await page.get_by_role("button", name="Применить", exact=True).click()
             await page.wait_for_url("**/dashboard?**")
             after_filter = await assert_ui_api(page, origin, EXPECTED[0][2])
@@ -208,19 +210,18 @@ async def exercise(config: Settings, password: str, viewer_password: str) -> Non
             assert after_filter["metrics"] == dashboard_before["metrics"]
             await quality.get_by_role("link", name="Следующая страница →", exact=True).click()
             await quality.wait_for_url("**/quality?**offset=1*")
-            assert first["run_id"] in await quality.locator(".metadata").inner_text(), (
+            assert first["run_id"] in await quality.locator(".metadata-details").text_content(), (
                 "Quality next page switched snapshot"
             )
             await quality.get_by_role("link", name="← Предыдущая страница", exact=True).click()
             await quality.wait_for_url("**/quality?**offset=0*")
-            assert first["run_id"] in await quality.locator(".metadata").inner_text()
-            await limitations.get_by_role(
-                "link", name="Показать отдельный раздел", exact=True
-            ).click()
+            assert first["run_id"] in await quality.locator(".metadata-details").text_content()
+            await limitations.get_by_role("link", name="Посмотреть →", exact=True).click()
             await limitations.wait_for_url("**/quality?**section=limitations*")
-            assert first["run_id"] in await limitations.locator(".metadata").inner_text(), (
-                "Limitations switched snapshot"
-            )
+            assert (
+                first["run_id"] in await limitations.locator(".metadata-details").text_content()
+            ), "Limitations switched snapshot"
+            await page.locator("#portfolio-filters > summary").click()
             await page.get_by_role("link", name="Сбросить", exact=True).click()
             await page.wait_for_url("**/dashboard?run_id=*")
             assert parse_qs(urlsplit(page.url).query)["run_id"] == [first["run_id"]]
@@ -230,21 +231,26 @@ async def exercise(config: Settings, password: str, viewer_password: str) -> Non
             assert (
                 Decimal(current["metrics"]["gross"]["value"]) == Decimal(EXPECTED[0][2][0]) + 1000
             )
+            await page.locator("#portfolio-filters > summary").click()
             await page.locator('select[name="property_id"]').select_option("V019")
             await page.get_by_role("button", name="Применить", exact=True).click()
             await page.wait_for_url("**/dashboard?**property_id=V019*")
             selected = await assert_ui_api(page, origin)
             assert len(selected["properties"]) == 1
+            await page.locator(".tabs a").filter(has_text="Операции").click()
+            await page.get_by_label("Поиск по ID или объекту").fill("R0002")
+            await page.get_by_role("button", name="Найти", exact=True).click()
             await page.get_by_role("link", name="R0002", exact=True).click()
             await page.wait_for_url("**/detail/reservations/R0002?**")
+            await page.get_by_text("Правила и формулы", exact=True).click()
             assert "ROUND_HALF_UP" in await page.locator("main").inner_text()
-            assert await page.get_by_role(
-                "heading", name="Исходные строки · reservations.csv"
+            assert await page.get_by_text(
+                "Исходные строки · reservations.csv", exact=True
             ).is_visible()
             await page.get_by_role("link", name="P0001", exact=True).click()
             assert await page.get_by_role("heading", name="P0001", exact=True).is_visible()
             await page.goto(origin + "/quality?business_key=P0051")
-            await page.get_by_role("link", name="UNRECONCILED_PAYMENT", exact=True).click()
+            await page.get_by_role("link", name="Поступление не сверено", exact=True).click()
             await page.wait_for_url("**/quality/issues/**")
             assert "R0102" in await page.locator("main").inner_text()
             await page.locator('a[href*="/quality/raw/"]').first.click()
@@ -252,10 +258,11 @@ async def exercise(config: Settings, password: str, viewer_password: str) -> Non
                 "heading", name="Исходная строка", exact=True
             ).is_visible()
             await page.goto(origin + "/imports")
-            await page.get_by_role("link", name=second["run_id"], exact=True).click()
+            await page.get_by_role("link", name=second["run_id"][:8], exact=True).click()
             assert await page.get_by_role(
                 "heading", name="Сравнение наборов", exact=True
             ).is_visible()
+            await page.get_by_text("Изменить базовый снимок", exact=True).click()
             baseline = page.get_by_label("Базовый опубликованный run_id", exact=True)
             assert await baseline.input_value() == first["run_id"]
             await baseline.fill(first["run_id"])
@@ -271,8 +278,16 @@ async def exercise(config: Settings, password: str, viewer_password: str) -> Non
                 )
             ).json()
             assert comparison["comparison"]["reservations.csv"]["changed"] == ["R0002"]
-            await page.get_by_text("Изменено · 1", exact=True).click()
+            await (
+                page.get_by_role("row")
+                .filter(has_text="reservations.csv")
+                .locator("td")
+                .nth(2)
+                .locator("summary")
+                .click()
+            )
             assert "R0002" in await page.locator("main").inner_text()
+            await page.locator(".user-menu > summary").click()
             await page.get_by_role("button", name="Выйти", exact=True).click()
             await page.wait_for_url("**/login")
             assert (await page.request.get(origin + "/api/v1/dashboard")).status == 401
@@ -289,6 +304,7 @@ async def exercise(config: Settings, password: str, viewer_password: str) -> Non
                 assert (await page.request.get(origin + route)).status == status
             await page.goto(origin + "/dashboard?date_from=2027-01-01&date_to=2027-01-31")
             assert (await assert_ui_api(page, origin))["state"] == "empty"
+            await page.locator(".user-menu > summary").click()
             await page.get_by_role("button", name="Выйти", exact=True).click()
             await page.wait_for_url("**/login")
             assert (await page.request.get(origin + "/api/v1/quality-issues")).status == 401
