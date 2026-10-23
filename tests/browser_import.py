@@ -36,7 +36,7 @@ async def main() -> None:
                         await page.get_by_role("button", name="Войти", exact=True).click()
                         await page.wait_for_url("**/dashboard")
                         assert "пока не готовы" in await page.locator("main").inner_text()
-                        await page.get_by_role("link", name="Импорт CSV", exact=True).click()
+                        await page.goto(origin + "/imports?view=upload")
                         await page.get_by_label(
                             "CSV-файлы полного набора", exact=True
                         ).set_input_files([str(BASE_DIR / "data" / name) for name in SCHEMAS])
@@ -77,7 +77,11 @@ async def main() -> None:
                         await page.unroute("**/api/v1/imports", hold_upload)
                         assert not await page.locator("#import-submit").is_disabled()
                         assert first["run_id"] in await page.locator("#import-result").inner_text()
-                        assert first["run_id"] in await page.locator("#import-history").inner_text()
+                        assert (
+                            first["run_id"][:8]
+                            in await page.locator("#import-history").text_content()
+                        )
+                        assert await page.locator("#import-count").text_content() == "1"
                         await page.locator("#import-upload").screenshot(
                             path=str(BASE_DIR / ".cache" / "import-ui.png")
                         )
@@ -86,7 +90,7 @@ async def main() -> None:
                             "heading", name="Сравнение наборов", exact=True
                         ).is_visible()
                         assert "web:" in await page.locator("main").inner_text()
-                        await page.get_by_role("link", name="Импорт CSV", exact=True).click()
+                        await page.goto(origin + "/imports?view=upload")
                         await page.get_by_label(
                             "CSV-файлы полного набора", exact=True
                         ).set_input_files([str(BASE_DIR / "data" / name) for name in SCHEMAS])
@@ -101,6 +105,7 @@ async def main() -> None:
                             "link", name="Финансы активного снимка", exact=True
                         ).get_attribute("href")
                         assert finance_destination
+                        await page.goto(origin + "/imports")
                         for selected in ("", "published", ""):
                             await page.locator(
                                 '#finance-filter select[name="status"]'
@@ -120,7 +125,7 @@ async def main() -> None:
                                 "heading", name="История импортов", exact=True
                             ).is_visible()
                         await page.goto(origin + finance_destination)
-                        await page.locator("#properties-chart svg").wait_for()
+                        await page.locator("#trend-chart svg").wait_for()
                         dashboard = await (
                             await page.request.get(origin + "/api/v1/dashboard")
                         ).json()
@@ -133,7 +138,7 @@ async def main() -> None:
                         assert await page.get_by_role(
                             "heading", name="Качество данных", exact=True
                         ).is_visible()
-                        await page.get_by_role("link", name="Импорт CSV", exact=True).click()
+                        await page.goto(origin + "/imports?view=upload")
                         await page.get_by_label(
                             "CSV-файлы полного набора", exact=True
                         ).set_input_files(
@@ -165,6 +170,7 @@ async def main() -> None:
                         ).is_visible()
                         history = await (await page.request.get(origin + "/api/v1/imports")).json()
                         assert history["total"] == 2 and history["active_run_id"] == first["run_id"]
+                        assert await page.locator("#import-count").text_content() == "2"
                         await page.set_viewport_size({"width": 390, "height": 844})
                         assert await page.evaluate(
                             "document.documentElement.scrollWidth <= window.innerWidth"

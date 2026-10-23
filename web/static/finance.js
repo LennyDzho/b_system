@@ -67,6 +67,12 @@
   });
   window.addEventListener("hashchange", () => reveal(location.hash));
   if (location.hash) reveal(location.hash);
+  // Preserve old upload bookmarks after separating the import representations.
+  if (location.pathname === "/imports" && location.hash === "#import-upload" && !document.getElementById("import-upload")) {
+    const destination = new URL(location.href);
+    destination.searchParams.set("view", "upload");
+    location.replace(destination);
+  }
 
   const source = document.getElementById("dashboard-chart-data");
   if (!source) return;

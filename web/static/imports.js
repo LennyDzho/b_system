@@ -32,6 +32,8 @@
       const updated = documentCopy.getElementById("import-history");
       if (!updated) return false;
       document.getElementById("import-history").replaceWith(document.importNode(updated, true));
+      const count = document.getElementById("import-count");
+      if (count) count.textContent = updated.dataset.total;
       return true;
     } catch { return false; }
   };

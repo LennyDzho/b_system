@@ -25,13 +25,14 @@ async def history_page(
     limit: Annotated[int, Query(ge=1, le=100)] = 25,
     offset: Annotated[int, Query(ge=0)] = 0,
     status: Literal["running", "failed", "published"] | None = None,
+    view: Literal["history", "upload"] = "history",
 ) -> HTMLResponse:
     """Render immutable attempts and active identity only for administrators."""
     data = await service.history(user, limit, offset, status)
     return templates.TemplateResponse(
         request,
         "imports.html",
-        {"data": data, "user": user, "import_files": sorted(SCHEMAS)},
+        {"data": data, "user": user, "import_files": sorted(SCHEMAS), "view": view},
         headers={"Cache-Control": "no-store"},
     )
 
